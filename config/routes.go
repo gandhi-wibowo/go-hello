@@ -1,0 +1,47 @@
+package config
+
+import (
+	"fmt"
+
+	"hello/controllers"
+	"hello/utils"
+
+	"github.com/gin-gonic/gin"
+)
+
+// CORS is function for enable cors on backend
+func cors() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, x-api-key, X-BCA-Key, X-BCA-Timestamp, X-BCA-Signature")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func Setup(port string) {
+
+	app := gin.Default()
+	app.Use(cors())
+
+	auth := app.Group("/auth")
+	auth.POST("/register", controllers.Register)            // Register
+	auth.POST("/login", controllers.Login)                  // Login
+	auth.POST("/reset-password", controllers.ResetPassword) // Reset Password
+
+	user := app.Group("/user")
+	user.GET("", utils.MidleWare(), controllers.GetProfile)                        // Read
+	user.PATCH("", utils.MidleWare(), controllers.PatchProfile)                    // Update
+	user.DELETE("", utils.MidleWare(), controllers.DeleteProfile)                  // DELETE
+	user.PUT("/change-password", utils.MidleWare(), controllers.PutChangePassword) // Change password
+
+	runningOnPort := fmt.Sprintf(":%s", port)
+	app.Run(runningOnPort)
+}
