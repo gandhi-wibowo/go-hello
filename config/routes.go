@@ -6,6 +6,8 @@ import (
 	"hello/controllers"
 	"hello/utils"
 
+	"gorm.io/gorm"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,14 +28,20 @@ func cors() gin.HandlerFunc {
 	}
 }
 
-func Setup(port string) {
+type ConfigRoute struct {
+	Conn *gorm.DB
+}
+
+func (conf *ConfigRoute) Setup(port string) {
 
 	app := gin.Default()
 	app.Use(cors())
 
+	authController := controllers.AuthController{Conn: conf.Conn}
+
 	auth := app.Group("/auth")
-	auth.POST("/register", controllers.Register)            // Register
-	auth.POST("/login", controllers.Login)                  // Login
+	auth.POST("/register", authController.Register)         // Register
+	auth.POST("/login", authController.Login)               // Login
 	auth.POST("/reset-password", controllers.ResetPassword) // Reset Password
 
 	user := app.Group("/user")
