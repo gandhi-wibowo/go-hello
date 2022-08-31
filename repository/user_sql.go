@@ -33,6 +33,9 @@ func (db *userRepo) Create(data models.User) error {
 func (db *userRepo) Read(credentialId string) (*models.User, int, error) {
 	user := models.User{}
 	result := db.Conn.Model(&user).Where("id = ?", credentialId).Or("email = ?", credentialId).Or("phone_number = ?", credentialId).Find(&user)
+	if user.ID.String() == "00000000-0000-0000-0000-000000000000" {
+		return nil, http.StatusNotFound, errors.New("User account not found")
+	}
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, http.StatusNotFound, errors.New("User account not found")

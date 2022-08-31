@@ -40,7 +40,8 @@ func (ctrl *AuthController) Login(ctx *gin.Context) {
 	repo := repository.UserRepo(ctrl.Conn)
 	result, code, errMesg := repo.Read(data.CredentialId)
 	if errMesg != nil {
-		ctx.JSON(http.StatusOK, models.Response(code, errMesg.Error(), nil))
+		ctx.JSON(code, models.Response(code, errMesg.Error(), nil))
+		return
 	}
 	if utils.CheckPasswordHash(data.Password, result.Password) {
 		token, err := utils.GenerateJwt(*result)
@@ -48,8 +49,6 @@ func (ctrl *AuthController) Login(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, models.Response(http.StatusInternalServerError, "failed", nil))
 		} else {
 			ctx.JSON(http.StatusOK, models.Response(http.StatusOK, "success", token))
-			// simpan token nya ke data si user.
-			// panggil model untuk update
 			data := models.User{
 				Token: *token,
 			}
@@ -57,17 +56,9 @@ func (ctrl *AuthController) Login(ctx *gin.Context) {
 		}
 	} else {
 		// password salah
-		ctx.JSON(http.StatusOK, models.Response(http.StatusBadRequest, "wrong password", nil))
+		ctx.JSON(http.StatusBadRequest, models.Response(http.StatusBadRequest, "wrong password", nil))
 	}
-	return
-
-	// ambil credential id nya.
-	// trus ambil 1 data dari database berdasarkan credential id nya.
-
-	// ambil data
-	// check ke database
-	// Generate JWT.
-	//	GenerateJwt(ctx)
+	// return
 }
 func ResetPassword(ctx *gin.Context) {
 	// ambil data
