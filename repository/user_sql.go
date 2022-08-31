@@ -45,8 +45,13 @@ func (db *userRepo) Read(credentialId string) (*models.User, int, error) {
 	return &user, http.StatusOK, nil
 }
 
-func (db *userRepo) Update(user models.User, data models.User) {
-	db.Conn.Model(&user).Updates(data)
+func (db *userRepo) Update(user models.User, data models.User) error {
+	err := db.Conn.Model(&user).Updates(data).Error
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
 }
 
 func (db *userRepo) Delete() {

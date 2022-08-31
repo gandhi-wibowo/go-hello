@@ -40,9 +40,10 @@ func (conf *ConfigRoute) Setup(port string) {
 	authController := controllers.AuthController{Conn: conf.Conn}
 
 	auth := app.Group("/auth")
-	auth.POST("/register", authController.Register)         // Register
-	auth.POST("/login", authController.Login)               // Login
-	auth.POST("/reset-password", controllers.ResetPassword) // Reset Password
+	auth.POST("/register", authController.Register)                // Register
+	auth.POST("/login", authController.Login)                      // Login
+	auth.POST("/reset-password", controllers.ResetPassword)        // Reset Password
+	auth.POST("/logout", utils.MidleWare(), authController.Logout) // Reset Password
 
 	user := app.Group("/user")
 	user.GET("", utils.MidleWare(), controllers.GetProfile)                        // Read
