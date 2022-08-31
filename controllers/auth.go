@@ -38,8 +38,27 @@ func (ctrl *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 	repo := repository.UserRepo(ctrl.Conn)
-	result := repo.Read(data.CredentialId)
-	ctx.JSON(http.StatusOK, models.Response(http.StatusOK, "success", result))
+	result, code, errMesg := repo.Read(data.CredentialId)
+	if errMesg != nil {
+		ctx.JSON(http.StatusOK, models.Response(code, errMesg.Error(), nil))
+	}
+	if utils.CheckPasswordHash(data.Password, result.Password) {
+		token, err := utils.GenerateJwt(*result)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, models.Response(http.StatusInternalServerError, "failed", nil))
+		} else {
+			ctx.JSON(http.StatusOK, models.Response(http.StatusOK, "success", token))
+			// simpan token nya ke data si user.
+			// panggil model untuk update
+			data := models.User{
+				Token: *token,
+			}
+			repo.Update(*result, data)
+		}
+	} else {
+		// password salah
+		ctx.JSON(http.StatusOK, models.Response(http.StatusBadRequest, "wrong password", nil))
+	}
 	return
 
 	// ambil credential id nya.

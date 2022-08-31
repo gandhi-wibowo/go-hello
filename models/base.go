@@ -10,9 +10,9 @@ import (
 
 type BaseModel struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;"`
-	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"type:timestamp"`
-	DeletedAt time.Time `json:"deleted_at" gorm:"type:timestamp"`
+	CreatedAt time.Time `gorm:"type:datetime" json:"created_at,string,omitempty"`
+	UpdatedAt time.Time `gorm:"type:datetime" json:"updated_at,string,omitempty"`
+	DeletedAt time.Time `gorm:"type:datetime" json:"deleted_at,string,omitempty"`
 }
 
 func (base *BaseModel) BeforeCreate(db *gorm.DB) (err error) {

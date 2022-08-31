@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
+	"hello/models"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -61,5 +64,30 @@ func ExtractJwt(ctx *gin.Context, key string) *string {
 		}
 	} else {
 		return nil
+	}
+}
+
+type jwtData struct {
+	*models.User
+	*jwt.StandardClaims
+}
+
+func createJwtData(data models.User) *jwtData {
+	return &jwtData{
+		User: &data,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 1000).Unix(),
+		},
+	}
+}
+
+func GenerateJwt(data models.User) (*string, error) {
+	compiledJwtData := createJwtData(data)
+	token := jwt.NewWithClaims(jwt.GetSigningMethod(os.Getenv("JWT_SIGNING_METHOD")), compiledJwtData)
+	tokenString, er := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	if er != nil {
+		return nil, errors.New(er.Error())
+	} else {
+		return &tokenString, nil
 	}
 }
